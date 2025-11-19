@@ -17,6 +17,7 @@ Usage (locally or in a container):
         --output-model-path ml/models/hvac_failure_rf_model.pkl \
         --output-metrics-path ml/models/hvac_failure_metrics.json
 """
+import mlflow
 
 import argparse
 import json
