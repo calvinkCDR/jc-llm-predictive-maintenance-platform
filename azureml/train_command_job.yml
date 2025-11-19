@@ -17,7 +17,19 @@ command: >
   --output-model-path outputs/model/hvac_failure_rf_model.pkl
   --output-metrics-path outputs/model/hvac_failure_metrics.json
 
-environment: azureml:AzureML-sklearn-1.3-ubuntu20.04-py310-cpu@latest
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
+  conda_file: |
+    channels:
+      - conda-forge
+    dependencies:
+      - python=3.10
+      - numpy
+      - pandas
+      - scikit-learn
+      - pip
+      - pip:
+          - azureml-core
 
 compute: azureml:cpu-cluster
 
