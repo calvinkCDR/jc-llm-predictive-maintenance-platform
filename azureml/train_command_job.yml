@@ -1,1 +1,28 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+type: command
 
+display_name: hvac-failure-train-job
+experiment_name: hvac-failure-experiments
+description: >
+  Train a RandomForest model to predict HVAC failures within 24 hours
+  using synthetic sensor data, and log metrics for downstream deployment.
+
+code: .
+
+command: >
+  python ml/training/train_anomaly_model.py
+  --n-units 25
+  --days 60
+  --freq-minutes 15
+  --output-model-path outputs/model/hvac_failure_rf_model.pkl
+  --output-metrics-path outputs/model/hvac_failure_metrics.json
+
+environment: azureml:AzureML-sklearn-1.3-ubuntu20.04-py310-cpu@latest
+
+compute: azureml:cpu-cluster
+
+outputs:
+  model_dir:
+    type: uri_folder
+    mode: rw_mount
+    path: azureml://datastores/workspaceblobstore/paths/hvac-failure-model/
