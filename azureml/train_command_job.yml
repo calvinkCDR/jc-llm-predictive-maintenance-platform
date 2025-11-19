@@ -7,10 +7,9 @@ description: >
   Train a RandomForest model to predict HVAC failures within 24 hours
   using synthetic sensor data, and log metrics for downstream deployment.
 
-code: .
+code: ..
 
 command: >
-  bash -c "
   pip install -q scikit-learn pandas numpy joblib &&
   python ml/training/train_anomaly_model.py
     --n-units 25
@@ -18,7 +17,6 @@ command: >
     --freq-minutes 15
     --output-model-path outputs/model/hvac_failure_rf_model.pkl
     --output-metrics-path outputs/model/hvac_failure_metrics.json
-  "
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
