@@ -24,7 +24,7 @@ class AzureOpenAIConfig:
     @classmethod
     def from_env(cls) -> "AzureOpenAIConfig":
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        api_key = os.getenv("AZURE_OPENAI_KEY")
         deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o-mini")
         api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
 
