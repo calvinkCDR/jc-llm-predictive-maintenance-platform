@@ -61,11 +61,15 @@ def run_hvac_diagnostic(prompt: str) -> str:
     Simple helper to send a prompt to your gpt-4o-mini deployment
     and return the text response.
     """
-    client = get_client()
-    deployment = AzureOpenAIConfig.from_env().deployment
+    cfg = AzureOpenAIConfig.from_env()
+    client = AzureOpenAI(
+        api_key=cfg.api_key,
+        api_version=cfg.api_version,
+        azure_endpoint=cfg.endpoint,
+    )
 
     response = client.chat.completions.create(
-        model=deployment,  # this is the *deployment name* in Azure, e.g. "gpt-4o-mini"
+        model=cfg.deployment,  # deployment name in Azure, e.g. "gpt-4o-mini"
         messages=[
             {
                 "role": "system",
@@ -81,3 +85,4 @@ def run_hvac_diagnostic(prompt: str) -> str:
     )
 
     return response.choices[0].message.content
+
