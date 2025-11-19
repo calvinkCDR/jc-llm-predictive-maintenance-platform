@@ -10,26 +10,18 @@ description: >
 code: .
 
 command: >
+  bash -c "
+  pip install -q scikit-learn pandas numpy joblib &&
   python ml/training/train_anomaly_model.py
-  --n-units 25
-  --days 60
-  --freq-minutes 15
-  --output-model-path outputs/model/hvac_failure_rf_model.pkl
-  --output-metrics-path outputs/model/hvac_failure_metrics.json
+    --n-units 25
+    --days 60
+    --freq-minutes 15
+    --output-model-path outputs/model/hvac_failure_rf_model.pkl
+    --output-metrics-path outputs/model/hvac_failure_metrics.json
+  "
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
-  conda_file: |
-    channels:
-      - conda-forge
-    dependencies:
-      - python=3.10
-      - numpy
-      - pandas
-      - scikit-learn
-      - pip
-      - pip:
-          - azureml-core
 
 compute: azureml:cpu-cluster
 
