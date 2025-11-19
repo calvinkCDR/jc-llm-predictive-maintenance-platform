@@ -1,9 +1,12 @@
-from llm.azure_openai_client import run_llm
+from llm.azure_openai_client import run_hvac_diagnostic
 
 
 def main() -> None:
-    prompt = "Give me three bullet points explaining predictive maintenance for HVAC systems."
-    answer = run_llm(prompt)
+    prompt = (
+        "Explain in 3 bullet points how predictive maintenance works for HVAC "
+        "systems, in non-technical language."
+    )
+    answer = run_hvac_diagnostic(prompt)
     print("MODEL RESPONSE:\n")
     print(answer)
 
