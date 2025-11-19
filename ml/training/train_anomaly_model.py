@@ -17,7 +17,8 @@ Usage (locally or in a container):
         --output-model-path ml/models/hvac_failure_rf_model.pkl \
         --output-metrics-path ml/models/hvac_failure_metrics.json
 """
-import mlflow
+
+import mlflow  # added for logging to Azure ML / MLflow
 
 import argparse
 import json
@@ -235,6 +236,27 @@ def main():
     print(f"Saving metrics to {cfg.output_metrics_path}")
     with cfg.output_metrics_path.open("w") as f:
         json.dump(metrics, f, indent=2)
+
+    # Log params and metrics to MLflow / Azure ML so they appear in the Metrics tab
+    try:
+        mlflow.log_params(
+            {
+                "n_units": cfg.n_units,
+                "days": cfg.days,
+                "freq_minutes": cfg.freq_minutes,
+                "random_seed": cfg.random_seed,
+            }
+        )
+        mlflow.log_metrics(
+            {
+                "roc_auc": float(metrics["roc_auc"]),
+                "n_samples": int(metrics["n_samples"]),
+                "positive_rate": float(metrics["positive_rate"]),
+            }
+        )
+    except Exception as e:
+        # Don't fail the training run if MLflow logging isn't available (e.g., local runs)
+        print(f"Warning: failed to log metrics to MLflow: {e}")
 
     print("Done.")
 
