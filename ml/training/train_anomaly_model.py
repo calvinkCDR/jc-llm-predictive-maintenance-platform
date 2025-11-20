@@ -18,8 +18,6 @@ Usage (locally or in a container):
         --output-metrics-path ml/models/hvac_failure_metrics.json
 """
 
-import mlflow  # added for logging to Azure ML / MLflow
-
 import argparse
 import json
 from dataclasses import dataclass
@@ -27,6 +25,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Tuple
 
+import mlflow
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -78,7 +77,7 @@ def generate_unit_data(
         window = int(24 * 60 / freq_minutes)  # 24h window
         end = min(periods, failure_start + window)
 
-        # degrading behavior before failure
+        # Degrading behavior before failure
         vibration[failure_start:end] += np.linspace(0.1, 0.5, end - failure_start)
         supply_temp[failure_start:end] += np.linspace(1.0, 3.0, end - failure_start)
         power_kw[failure_start:end] += np.linspace(0.5, 2.0, end - failure_start)
@@ -223,43 +222,34 @@ def main():
     data = generate_dataset(cfg)
     print(f"Dataset shape: {data.shape}, positive rate={data['failure_in_24h'].mean():.4f}")
 
-    print("Training model...")
-    model, metrics = train_model(data, cfg)
+    # Azure ML automatically wires MLflow to the current run.
+    # We still call start_run() so metrics are properly associated.
+    with mlflow.start_run():
+        print("Training model...")
+        model, metrics = train_model(data, cfg)
 
-    # ensure output directory exists
-    cfg.output_model_path.parent.mkdir(parents=True, exist_ok=True)
-    cfg.output_metrics_path.parent.mkdir(parents=True, exist_ok=True)
+        # Ensure output directories exist
+        cfg.output_model_path.parent.mkdir(parents=True, exist_ok=True)
+        cfg.output_metrics_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"Saving model to {cfg.output_model_path}")
-    joblib.dump(model, cfg.output_model_path)
+        print(f"Saving model to {cfg.output_model_path}")
+        joblib.dump(model, cfg.output_model_path)
 
-    print(f"Saving metrics to {cfg.output_metrics_path}")
-    with cfg.output_metrics_path.open("w") as f:
-        json.dump(metrics, f, indent=2)
+        print(f"Saving metrics to {cfg.output_metrics_path}")
+        with cfg.output_metrics_path.open("w") as f:
+            json.dump(metrics, f, indent=2)
 
-    # Log params and metrics to MLflow / Azure ML so they appear in the Metrics tab
-    try:
-        mlflow.log_params(
-            {
-                "n_units": cfg.n_units,
-                "days": cfg.days,
-                "freq_minutes": cfg.freq_minutes,
-                "random_seed": cfg.random_seed,
-            }
-        )
-        mlflow.log_metrics(
-            {
-                "roc_auc": float(metrics["roc_auc"]),
-                "n_samples": int(metrics["n_samples"]),
-                "positive_rate": float(metrics["positive_rate"]),
-            }
-        )
-    except Exception as e:
-        # Don't fail the training run if MLflow logging isn't available (e.g., local runs)
-        print(f"Warning: failed to log metrics to MLflow: {e}")
+        # ---- MLflow logging ----
+        print("Logging metrics to MLflow...")
+        mlflow.log_metric("roc_auc", metrics["roc_auc"])
+        mlflow.log_metric("n_samples", metrics["n_samples"])
+        mlflow.log_metric("positive_rate", metrics["positive_rate"])
+        # store the full classification report as an artifact
+        mlflow.log_dict(metrics["classification_report"], "classification_report.json")
 
     print("Done.")
 
 
 if __name__ == "__main__":
     main()
+
