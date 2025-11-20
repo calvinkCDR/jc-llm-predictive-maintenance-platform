@@ -16,8 +16,8 @@ code: ..
 # If your conda file lives somewhere else, adjust the path.
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
-  conda_file: azureml/conda.yml
-
+  conda_file: ../environment.yml
+  
 # ---------- Inputs ----------
 inputs:
   n_units:
