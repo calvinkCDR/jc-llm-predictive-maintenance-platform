@@ -1,0 +1,61 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+
+name: hvac_train_component
+version: 1
+display_name: hvac-failure-train-component
+type: command
+description: >
+  Train a RandomForest model to predict HVAC failures within 24 hours using
+  synthetic sensor data and log metrics for downstream deployment.
+
+# This is the root of your repo as seen from the component.
+# (Same idea as your previous train_command_job.yml)
+code: ..
+
+# Use the same base image you used for the job and a conda env with the deps.
+# If your conda file lives somewhere else, adjust the path.
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
+  conda_file: azureml/conda.yml
+
+# ---------- Inputs ----------
+inputs:
+  n_units:
+    type: integer
+    default: 25
+    description: Number of HVAC units to simulate.
+  days:
+    type: integer
+    default: 60
+    description: Number of days of history per unit.
+  freq_minutes:
+    type: integer
+    default: 15
+    description: Sampling frequency in minutes.
+  random_seed:
+    type: integer
+    default: 42
+    description: Random seed for reproducibility.
+
+# ---------- Outputs ----------
+outputs:
+  model_dir:
+    type: uri_folder
+    description: Folder where the trained model (.pkl) will be written.
+  metrics:
+    type: uri_file
+    description: JSON file with ROC AUC, class report, and other metrics.
+
+# ---------- Command ----------
+# NOTE:
+# - We now pass --metrics-path (new arg) instead of the old --output-metrics-path.
+# - Azure will resolve ${{outputs.*}} paths for you at run-time.
+command: >-
+  pip install -q azureml-mlflow scikit-learn pandas numpy joblib &&
+  python ml/training/train_anomaly_model.py
+  --n-units ${{inputs.n_units}}
+  --days ${{inputs.days}}
+  --freq-minutes ${{inputs.freq_minutes}}
+  --random-seed ${{inputs.random_seed}}
+  --output-model-path ${{outputs.model_dir}}/hvac_failure_rf_model.pkl
+  --metrics-path ${{outputs.metrics}}
