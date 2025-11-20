@@ -15,7 +15,13 @@ Usage (locally or in a container):
         --days 60 \
         --freq-minutes 15 \
         --output-model-path ml/models/hvac_failure_rf_model.pkl \
-        --output-metrics-path ml/models/hvac_failure_metrics.json
+        --metrics-path ml/models/hvac_failure_metrics.json
+
+Notes
+-----
+- `--metrics-path` is the preferred flag for where to write the metrics JSON.
+- `--output-metrics-path` is kept as a backwards-compatible alias and will be
+  ignored if `--metrics-path` is provided.
 """
 
 import argparse
@@ -25,13 +31,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Tuple
 
+import joblib
 import mlflow
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.model_selection import train_test_split
-import joblib
 
 
 # -----------------------------
@@ -45,7 +51,7 @@ class TrainConfig:
     freq_minutes: int = 15
     random_seed: int = 42
     output_model_path: Path = Path("ml/models/hvac_failure_rf_model.pkl")
-    output_metrics_path: Path = Path("ml/models/hvac_failure_metrics.json")
+    metrics_path: Path = Path("ml/models/hvac_failure_metrics.json")
 
 
 # -----------------------------
@@ -196,14 +202,34 @@ def parse_args() -> TrainConfig:
         "--output-model-path",
         type=str,
         default="ml/models/hvac_failure_rf_model.pkl",
+        help="Where to save the trained model (.pkl).",
     )
+    # Preferred new flag for Azure ML / pipelines
+    parser.add_argument(
+        "--metrics-path",
+        type=str,
+        default=None,
+        help="Path to write metrics JSON (preferred; overrides --output-metrics-path).",
+    )
+    # Backwards-compatible alias
     parser.add_argument(
         "--output-metrics-path",
         type=str,
-        default="ml/models/hvac_failure_metrics.json",
+        default=None,
+        help="Deprecated alias for --metrics-path; kept for backwards compatibility.",
     )
 
     args = parser.parse_args()
+
+    # Resolve metrics path with precedence:
+    #   1) --metrics-path
+    #   2) --output-metrics-path
+    #   3) default value
+    metrics_path_str = (
+        args.metrics_path
+        or args.output_metrics_path
+        or "ml/models/hvac_failure_metrics.json"
+    )
 
     return TrainConfig(
         n_units=args.n_units,
@@ -211,7 +237,7 @@ def parse_args() -> TrainConfig:
         freq_minutes=args.freq_minutes,
         random_seed=args.random_seed,
         output_model_path=Path(args.output_model_path),
-        output_metrics_path=Path(args.output_metrics_path),
+        metrics_path=Path(metrics_path_str),
     )
 
 
@@ -230,13 +256,13 @@ def main():
 
         # Ensure output directories exist
         cfg.output_model_path.parent.mkdir(parents=True, exist_ok=True)
-        cfg.output_metrics_path.parent.mkdir(parents=True, exist_ok=True)
+        cfg.metrics_path.parent.mkdir(parents=True, exist_ok=True)
 
         print(f"Saving model to {cfg.output_model_path}")
         joblib.dump(model, cfg.output_model_path)
 
-        print(f"Saving metrics to {cfg.output_metrics_path}")
-        with cfg.output_metrics_path.open("w") as f:
+        print(f"Saving metrics to {cfg.metrics_path}")
+        with cfg.metrics_path.open("w") as f:
             json.dump(metrics, f, indent=2)
 
         # ---- MLflow logging ----
@@ -252,4 +278,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
