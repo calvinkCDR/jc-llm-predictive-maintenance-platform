@@ -1,0 +1,22 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+display_name: hvac-train-and-llm-diagnostic
+description: Train HVAC failure model and run LLM-based diagnostics.
+
+settings:
+  default_compute: azureml:cpu-cluster  # <- replace with your actual compute name if different
+
+jobs:
+  train:
+    type: command
+    component: file:azureml/components/train.yml
+    inputs:
+      n_units: 25
+      days: 60
+      freq_minutes: 15
+
+  llm_diag:
+    type: command
+    component: file:azureml/components/llm_diagnostic.yml
+    inputs:
+      metrics: ${{parent.jobs.train.outputs.metrics}}
