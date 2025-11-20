@@ -1,5 +1,7 @@
 # scripts/test_llm_diagnostic.py
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -7,8 +9,6 @@ import sys
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
-
-from __future__ import annotations
 
 import json
 from pathlib import Path
