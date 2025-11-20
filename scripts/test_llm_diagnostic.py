@@ -1,27 +1,47 @@
-from llm.diagnostics import SensorSnapshot, generate_diagnostic
+# scripts/test_llm_diagnostic.py
+
+"""
+Quick sanity test for the full HVAC LLM diagnostic pipeline.
+Runs end-to-end: builds a structured prompt → uses Azure OpenAI → prints result.
+"""
+
+from llm.diagnostics import generate_llm_diagnostic
 
 
 def main():
-    # Example sensor values (you can tweak these to simulate different states)
-    snapshot = SensorSnapshot(
-        ambient_temp=27.5,
-        supply_temp=18.0,
-        load_factor=0.8,
-        vibration=0.45,
-        power_kw=13.2,
-        humidity=48.0,
+    print("\n=== Running LLM Diagnostic Test ===\n")
+
+    # Example synthetic sensor snapshot
+    sensor_data = {
+        "supply_temp": 56.3,
+        "return_temp": 79.1,
+        "airflow_cfm": 218,
+        "pressure_diff": 0.42,
+        "vibration_level": 0.88,
+        "power_draw_kw": 4.7,
+    }
+
+    # Example anomaly model output
+    model_output = {
+        "anomaly_probability": 0.81,
+        "predicted_issue": "Possible compressor malfunction",
+        "risk_level": "High",
+    }
+
+    # Optional notes
+    notes = "Unit is making intermittent grinding noises. Technicians reported elevated vibration last week."
+
+    print("Sending test HVAC diagnostic prompt to Azure OpenAI...\n")
+
+    response = generate_llm_diagnostic(
+        sensor_snapshot=sensor_data,
+        model_output=model_output,
+        notes=notes,
     )
 
-    # For now, let's pretend our model predicted 0.65 failure probability
-    failure_probability = 0.65
-
-    result = generate_diagnostic(snapshot, failure_probability)
-
-    print("=== HVAC LLM Diagnostic ===")
-    print(f"Failure probability: {result.failure_probability:.1%}")
-    print(f"Risk level:         {result.risk_level}")
-    print("\nExplanation + Recommended actions:\n")
-    print(result.explanation)
+    print("\n=== LLM RESPONSE ===\n")
+    print(response)
+    print("\n=== END ===\n")
 
 
 if __name__ == "__main__":
