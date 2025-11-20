@@ -4,12 +4,12 @@ display_name: hvac-train-and-llm-diagnostic
 description: Train HVAC failure model and run LLM-based diagnostics.
 
 settings:
-  default_compute: azureml:cpu-cluster  # <- replace with your actual compute name if different
+  default_compute: azureml:cpu-cluster   # or whatever your compute is called
 
 jobs:
   train:
     type: command
-    component: ./azureml/components/train.yml
+    component: file:./components/train.yml     # <— FIXED
     inputs:
       n_units: 25
       days: 60
@@ -17,6 +17,6 @@ jobs:
 
   llm_diag:
     type: command
-    component: ./azureml/components/llm_diagnostic.yml
+    component: file:./components/llm_diagnostic.yml   # <— FIXED
     inputs:
       metrics: ${{parent.jobs.train.outputs.metrics}}
