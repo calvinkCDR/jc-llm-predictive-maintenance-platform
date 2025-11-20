@@ -9,7 +9,7 @@ settings:
 jobs:
   train:
     type: command
-    component: file:azureml/components/train.yml
+    component: ./azureml/components/train.yml
     inputs:
       n_units: 25
       days: 60
@@ -17,6 +17,6 @@ jobs:
 
   llm_diag:
     type: command
-    component: file:azureml/components/llm_diagnostic.yml
+    component: ./azureml/components/llm_diagnostic.yml
     inputs:
       metrics: ${{parent.jobs.train.outputs.metrics}}
