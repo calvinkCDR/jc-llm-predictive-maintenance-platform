@@ -1,47 +1,52 @@
 # scripts/test_llm_diagnostic.py
 
-"""
-Quick sanity test for the full HVAC LLM diagnostic pipeline.
-Runs end-to-end: builds a structured prompt → uses Azure OpenAI → prints result.
-"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
 
 from llm.diagnostics import generate_llm_diagnostic
 
 
-def main():
-    print("\n=== Running LLM Diagnostic Test ===\n")
+def main() -> None:
+    # Adjust this path if your download folder is different
+    metrics_path = Path("run_artifacts/outputs/model/hvac_failure_metrics.json")
 
-    # Example synthetic sensor snapshot
-    sensor_data = {
-        "supply_temp": 56.3,
-        "return_temp": 79.1,
-        "airflow_cfm": 218,
-        "pressure_diff": 0.42,
-        "vibration_level": 0.88,
-        "power_draw_kw": 4.7,
+    if not metrics_path.exists():
+        raise FileNotFoundError(
+            f"Could not find metrics file at {metrics_path}. "
+            "Make sure you've run:\n"
+            "  az ml job download --name <job-name> --download-path run_artifacts"
+        )
+
+    with metrics_path.open() as f:
+        metrics = json.load(f)
+
+    # Optional: you can also pass a small 'sensor snapshot'
+    sensor_snapshot = {
+        "site_id": "test_site_01",
+        "equipment_id": "RTU-3",
+        "outdoor_temp_c": 32.5,
+        "supply_air_temp_c": 19.2,
+        "return_air_temp_c": 24.0,
     }
 
-    # Example anomaly model output
-    model_output = {
-        "anomaly_probability": 0.81,
-        "predicted_issue": "Possible compressor malfunction",
-        "risk_level": "High",
-    }
-
-    # Optional notes
-    notes = "Unit is making intermittent grinding noises. Technicians reported elevated vibration last week."
-
-    print("Sending test HVAC diagnostic prompt to Azure OpenAI...\n")
+    notes = (
+        "These are evaluation metrics for our HVAC failure prediction model. "
+        "Please explain what they say about model performance in clear language "
+        "for a maintenance manager. Highlight strengths, weaknesses, and any "
+        "risks in missing true failures."
+    )
 
     response = generate_llm_diagnostic(
-        sensor_snapshot=sensor_data,
-        model_output=model_output,
+        sensor_snapshot=sensor_snapshot,
+        model_output=metrics,
         notes=notes,
     )
 
-    print("\n=== LLM RESPONSE ===\n")
+    print("\n=== LLM DIAGNOSTIC RESPONSE ===\n")
     print(response)
-    print("\n=== END ===\n")
+    print("\n===============================\n")
 
 
 if __name__ == "__main__":
