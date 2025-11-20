@@ -1,0 +1,23 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: hvac_llm_diagnostic_component
+display_name: hvac-llm-diagnostic
+type: command
+
+code: ..
+
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+  conda_file: azureml/environment.yml
+
+command: >-
+  python scripts/run_llm_diagnostic_job.py
+  --metrics-path ${{inputs.metrics}}
+  --report-path ${{outputs.report}}
+
+inputs:
+  metrics:
+    type: uri_file
+
+outputs:
+  report:
+    type: uri_file
