@@ -9,8 +9,8 @@ description: >
 
 code: ..
 
-command: >
-  pip install -q azureml-mlflow scikit-learn pandas numpy joblib openai &&
+command: >-
+  pip install -q azureml-mlflow scikit-learn pandas numpy joblib openai python-dotenv &&
   python ml/training/train_anomaly_model.py --n-units 25 --days 60 --freq-minutes 15 --output-model-path outputs/model/hvac_failure_rf_model.pkl --output-metrics-path outputs/model/hvac_failure_metrics.json
 
 environment_variables:
