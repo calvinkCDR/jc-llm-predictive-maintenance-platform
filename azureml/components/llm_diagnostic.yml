@@ -7,7 +7,7 @@ code: ..
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
-  conda_file: azureml/environment.yml
+  conda_file: ../environment.yml
 
 command: >-
   python scripts/run_llm_diagnostic_job.py
