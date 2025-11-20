@@ -15,6 +15,11 @@ command: >
            --output-model-path outputs/model/hvac_failure_rf_model.pkl
            --output-metrics-path outputs/model/hvac_failure_metrics.json"
 
+environment_variables:
+  AZURE_OPENAI_ENDPOINT: "https://calvi-mi5r2d07-eastus2.cognitiveservices.azure.com/"
+  AZURE_OPENAI_DEPLOYMENT: "gpt-4o-mini"
+  AZURE_OPENAI_API_VERSION: "2025-01-01-preview"
+
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
 
